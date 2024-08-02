@@ -120,14 +120,14 @@ ggrs = { git = "https://github.com/MaxCWhitehead/ggrs.git", rev = "96499377407ce
     "sync-send",
 ] }
 bones_matchmaker_proto = { version = "0.2", path = "../../other_crates/bones_matchmaker_proto" }
-bytes                  = "1.4"
-mdns-sd                = { version = "0.10", default-features = false }
-numquant               = "0.2"
-ping-rs                = "0.1"
-postcard               = { version = "1.0", features = ["alloc"] }
-rcgen                  = "0.12"
-rustls                 = { version = "0.21", features = ["dangerous_configuration", "quic"] }
-smallvec               = "1.10"
-iroh-quinn             = { version = "0.10" }
-iroh-net               = { version = "0.21" }
-tokio                  = { version = "1", features = ["rt-multi-thread", "macros"] }
+bytes = "1.4"
+mdns-sd = { version = "0.10", default-features = false }
+numquant = "0.2"
+ping-rs = "0.1"
+postcard = { version = "1.0", features = ["alloc"] }
+rcgen = "0.12"
+rustls = { version = "0.21", features = ["dangerous_configuration", "quic"] }
+smallvec = "1.10"
+iroh-quinn = { version = "0.10" }
+iroh-net = { git = "https://github.com/n0-computer/iroh.git" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
