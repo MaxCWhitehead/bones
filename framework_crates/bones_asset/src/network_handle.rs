@@ -24,9 +24,13 @@ impl<T> NetworkHandle<T> {
     /// Create asset [`Handle`] by looking up [`NetworkHandle`]'s [`Cid`] in [`AssetServer`].
     /// Panics if Cid not found in asset server.
     pub fn into_handle(&self, asset_server: &AssetServer) -> Handle<T> {
-        asset_server
-            .try_get_handle_from_cid(&self.cid)
-            .expect("Failed to lookup NetworkHandle content id in AssetServer. Is asset loaded? Invalid Cid?")
+        match asset_server.try_get_handle_from_cid(&self.cid) {
+            Some(handle) => handle,
+            None => {
+                tracing::error!("Cid: {}", &self.cid);
+                panic!("Failed to lookup NetworkHandle content id in AssetServer. Is asset loaded? Invalid Cid?")
+            }
+        }
     }
 
     /// Convert into [`UntypedHandle`].
