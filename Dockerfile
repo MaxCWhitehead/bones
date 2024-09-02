@@ -8,6 +8,7 @@ FROM rust:1.69.0-slim as builder
 
 WORKDIR /usr/src/bones
 COPY . .
+ENV RUSTFLAGS="--cfg tokio_unstable"
 RUN --mount=type=cache,target=/usr/local/cargo/registry/cache \
     --mount=type=cache,target=/usr/local/cargo/registry/index \
     --mount=type=cache,target=/usr/local/cargo/git/db \
@@ -23,4 +24,7 @@ FROM ubuntu:23.04
 USER 1001
 COPY --from=builder /usr/local/bin/bones_matchmaker /bones_matchmaker
 EXPOSE 8943/udp
+
+ENV TOKIO_CONSOLE_BIND=localhost:6667
+ENV RUST_LOG=bones_framework=DEBUG,iroh_net=DEBUG,bones_matchmaker=DEBUG,iroh_quinn_udp=DEBUG
 CMD /bones_matchmaker
