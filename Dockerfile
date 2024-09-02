@@ -25,6 +25,6 @@ USER 1001
 COPY --from=builder /usr/local/bin/bones_matchmaker /bones_matchmaker
 EXPOSE 8943/udp
 
-ENV TOKIO_CONSOLE_BIND=localhost:6667
+ENV TOKIO_CONSOLE_BIND=0.0.0.0:6667
 ENV RUST_LOG=bones_framework=DEBUG,iroh_net=DEBUG,bones_matchmaker=DEBUG,iroh_quinn_udp=DEBUG
 CMD /bones_matchmaker
