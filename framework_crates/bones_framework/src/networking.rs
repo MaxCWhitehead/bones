@@ -6,7 +6,7 @@ use self::{
 };
 use crate::prelude::*;
 use bones_matchmaker_proto::{MATCH_ALPN, PLAY_ALPN};
-use ggrs::P2PSession;
+use ggrs::{DesyncDetection, P2PSession};
 use instant::Duration;
 use once_cell::sync::Lazy;
 use std::{fmt::Debug, marker::PhantomData, sync::Arc};
@@ -519,6 +519,9 @@ pub struct GgrsSessionRunner<'a, InputTypes: NetworkInputConfig<'a>> {
 
     /// Local input delay ggrs session was initialized with
     local_input_delay: usize,
+
+    // pub hash_func: Option<Box<dyn Fn(&World) -> u16 + Sync + Send + HashFunc>>,
+    pub hash_func: Option<fn(&World) -> u16>,
 }
 
 /// The info required to create a [`GgrsSessionRunner`].
@@ -541,6 +544,8 @@ pub struct GgrsSessionRunnerInfo {
     ///
     /// `None` will use Bone's default.
     pub local_input_delay: Option<usize>,
+    // hash_func: Option<Box<dyn Fn(&World) -> u16 + Sync + Send + Clone>>,
+    hash_func: Option<fn(&World) -> u16>,
 }
 
 impl GgrsSessionRunnerInfo {
@@ -549,6 +554,7 @@ impl GgrsSessionRunnerInfo {
         socket: Socket,
         max_prediction_window: Option<usize>,
         local_input_delay: Option<usize>,
+        // hash_func: Option<fn(&World) -> u16>,
     ) -> Self {
         let player_idx = socket.player_idx();
         let player_count = socket.player_count();
@@ -558,6 +564,7 @@ impl GgrsSessionRunnerInfo {
             player_count,
             max_prediction_window,
             local_input_delay,
+            hash_func: Some(hash_func),
         }
     }
 }
@@ -600,6 +607,7 @@ where
             .with_input_delay(local_input_delay)
             .with_fps(network_fps)
             .unwrap()
+            .with_desync_detection_mode(DesyncDetection::On { interval: 1 })
             .with_max_prediction_window(max_prediction)
             .unwrap();
 
@@ -632,6 +640,7 @@ where
             socket: info.socket.clone(),
             local_input_delay,
             local_input_disabled: false,
+            hash_func: info.hash_func,
         }
     }
 }
@@ -802,7 +811,13 @@ where
                         for request in requests {
                             match request {
                                 ggrs::GgrsRequest::SaveGameState { cell, frame } => {
-                                    cell.save(frame, Some(world.clone()), None)
+                                    let checksum =
+                                        self.hash_func.as_ref().map(|hash_func| hash_func(world));
+                                    cell.save(
+                                        frame,
+                                        Some(world.clone()),
+                                        checksum.map(|x| x as u128),
+                                    );
                                 }
                                 ggrs::GgrsRequest::LoadGameState { cell, frame } => {
                                     // Swap out sessions to preserve them after world save.
@@ -952,6 +967,7 @@ where
             player_count: self.session.num_players().try_into().unwrap(),
             max_prediction_window: Some(self.session.max_prediction()),
             local_input_delay: Some(self.local_input_delay),
+            hash_func: self.hash_func,
         };
         *self = GgrsSessionRunner::new(self.original_fps as f32, runner_info);
     }
@@ -997,4 +1013,15 @@ impl PlayerNetworkStats {
             remote_frames_behind: stats.remote_frames_behind,
         }
     }
+}
+
+fn hash_func(world: &World) -> u16 {
+    let mut fletcher = fletcher::Fletcher16::default();
+    let entities = world.get_resource::<Entities>().unwrap();
+    let transforms = world.components.get::<Transform>().borrow();
+    for (_, transform) in entities.iter_with(&transforms) {
+        let vec = postcard::to_allocvec(transform).unwrap();
+        fletcher.update(&vec);
+    }
+    fletcher.value()
 }
