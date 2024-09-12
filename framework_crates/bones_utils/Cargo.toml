@@ -29,6 +29,7 @@ futures-lite       = "2.3"
 turborand          = "0.10"
 instant            = { version = "0.1", features = ["wasm-bindgen"] }
 glam               = { version = "0.24", optional = true }
+paste              = { version = "1.0" }
 
 # Make sure that the getrandom package, used in `ulid` works on web
 # when compiling for WASM.
