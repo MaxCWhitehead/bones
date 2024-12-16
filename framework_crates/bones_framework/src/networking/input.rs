@@ -19,7 +19,7 @@ pub trait NetworkInputConfig<'a> {
     type Control: NetworkPlayerControl<Self::Dense>;
 
     // Must be HasSchema because expected to be retrieved from `World` as `Resource`.
-    type PlayerControls: PlayerControls<'a, Self::Control> + HasSchema;
+    type PlayerControls: PlayerControls<'a, Self::Control> + HasSchema + Default;
 
     // InputCollector type params must match that of PlayerControls, so using associated types.
     type InputCollector: InputCollector<
