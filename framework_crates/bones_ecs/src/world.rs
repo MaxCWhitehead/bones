@@ -167,7 +167,6 @@ impl World {
     }
 
     /// Initialize a resource of type `T` by inserting it's default value.
-    /// If already exists, return existing resource.
     pub fn init_resource<R: HasSchema + FromWorld>(&mut self) -> RefMut<R> {
         if unlikely(!self.resources.contains::<R>()) {
             let value = R::from_world(self);

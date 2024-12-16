@@ -764,15 +764,10 @@ where
         let mut skip_frames: u32 = 0;
 
         {
-            // Can't just call init_resource as it returns mut ref - add immutable version
-            // of init_resource that inserts or returns existing?
-            if world.get_resource::<InputTypes::PlayerControls>().is_none() {
-                world.init_resource::<InputTypes::PlayerControls>();
-            }
-            let player_inputs = world.resource::<InputTypes::PlayerControls>();
-
             let keyboard = world.resource::<KeyboardInputs>();
             let gamepad = world.resource::<GamepadInputs>();
+
+            let player_inputs = world.resource::<InputTypes::PlayerControls>();
 
             // Collect inputs and update controls
             self.input_collector.apply_inputs(
